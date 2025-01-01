@@ -1,65 +1,59 @@
 import { useState } from "react";
-import { DayPicker, DateRange } from "react-day-picker";
+import { DayPicker } from "react-day-picker";
 import "react-day-picker/style.css";
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import "./App.css";
 
 function App() {
-  const [range, setRange] = useState<DateRange | undefined>(undefined);
-  const [isCalendarVisible, setCalendarVisible] = useState<boolean>(false);
-
-  const formatRange = (range?: DateRange) => {
-    if (range?.from && range?.to) {
-      return `${formatDate(range.from)} - ${formatDate(range.to)}`;
-    }
-    return "Select Date Range";
-  };
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString(undefined, {
-      month: "2-digit",
       day: "2-digit",
+      month: "2-digit",
       year: "2-digit",
     });
   };
 
-  const handleDateSelect = (selectedRange: DateRange | undefined) => {
-    if (!selectedRange) return;
-    if (selectedRange.from && selectedRange.to && selectedRange.from !== selectedRange.to) {
-      setRange(selectedRange);
-      setCalendarVisible(false); 
-    } else {
-      setRange(selectedRange);
-    }
-  };
-
-  const handleButtonClick = () => {
-    setCalendarVisible((prev) => {
-      return !prev || !(range?.from && range?.to && range?.from !== range?.to);
-    });
-  };
+  const closeCalendar = () => setShowCalendar(false);
 
   return (
-    <div className="relative">
+    <div>
       <button
-        className="flex items-center border rounded px-4 py-2 shadow-md space-x-2"
-        onClick={handleButtonClick}
+        style={{ display: "flex", alignItems: "center" }}
+        onClick={() => setShowCalendar(!showCalendar)}
       >
-        <span className="icon">📅</span>
-        <span>{formatRange(range)}</span>
+        <CalendarTodayIcon />
+        {selectedDate ? formatDate(selectedDate) : "Select Date"}
       </button>
 
-      {isCalendarVisible && (
-        <div className="absolute mt-2 flex space-x-4 p-4 border bg-white shadow-lg rounded border-gray-200">
-          <DayPicker
-            mode="range"
-            selected={range}
-            onSelect={handleDateSelect}
-            captionLayout="label"
-            numberOfMonths={2}
-            required
-            showOutsideDays
-            timeZone="UTC"
-          />
+      {showCalendar && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center"
+          onClick={closeCalendar}
+        >
+          <div
+            className="bg-white p-4 rounded-lg shadow-lg relative z-10"
+            onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside the modal
+          >
+            <DayPicker
+              mode="single"
+              numberOfMonths={1}
+              showOutsideDays
+              onSelect={(date) => {
+                if (date) {
+                  setSelectedDate(date);
+                  setShowCalendar(false);
+                }
+              }}
+              styles={{
+                caption: { color: "black" },
+                day: { color: "black" },
+                months: { backgroundColor: "white" }, // Calendar popup bg color
+              }}
+            />
+          </div>
         </div>
       )}
     </div>
